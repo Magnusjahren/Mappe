@@ -1,0 +1,196 @@
+## Instruksjoner
+
+Denne oppgaven skal løses interaktivt i RStudio ved å legge inn egen kode og kommentarer. Det ferdige dokumentet lagres med kandidatnummeret som navn `[kandidatnummer]_SOK1004_C2_H22.qmd` og lastes opp på deres GitHub-side. Hvis du har kandidatnummer 43, så vil filen hete `43_SOK1004_C2_H22.qmd`. Påse at koden kjører og at dere kan eksportere besvarelsen til pdf. Lever så lenken til GitHub-repositoriumet i Canvas.
+
+## Bakgrunn
+
+Økonomisk vekst gir økt kjøpekraft og velferd. Økningen i økonomisk aktivitet har hittil blitt muliggjort gjennom å utnytte fossile energikilder som kull, olje og gass. Forbrenningen av hydrokarboner har over tid økt mengden CO2 i atmosfæren og forårsaket endringer i klimaet. Klimaendringene medfører en rekke kostnader, blant andre hyppigere og mer intense innslag av ekstreme værforhold. I den grad veksten drives av fossile energikilder er det ikke opplagt at høyere økonomisk aktivitet vil øke menneskelig velferd på sikt. Vi står ovenfor en avveining mellom økt kjøpekraft og klimaendringer.
+
+I denne oppgaven skal vi utforske avveiningen mellom kjøpekraft og klimaendringer ved å studere sammenhengen mellom CO2-utslipp og bruttonasjonalprodukt (BNP) på tvers av land. Data henter vi fra [OWID](https://ourworldindata.org/co2-emissions). En beskrivelse av dataene (kodebok) finnes [her](https://github.com/owid/co2-data/blob/master/owid-co2-codebook.csv).
+
+Vi skal utforske følgende: Hvilke land har høyest CO2 utslipp? Hvordan kan utslippene sammenlignes når vi tar hensyn til befolkningen og størrelsen på økonomiene? Kan bruken av kull til energiproduksjon forklare forskjellen mellom land? Hvordan stiller utslippene seg når vi justerer for internasjonal handel og skiller mellom produksjon og forbruk?
+
+**Merknad.** I oppgaven definerer jeg variabler matematisk og ber dere lage figurer av de. Alle variablene finnes i datasettet. En del av oppgaven er å finne de.
+
+## Last inn pakker
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+```
+
+## Last ned data
+
+```{r}
+url <- 
+  "https://raw.githubusercontent.com/owid/co2-data/master/owid-co2-data.csv"
+
+df <- url %>%
+  read_csv()
+```
+
+## I. Karbonintensitet i produksjon
+
+Vi skal studere sammenhengen mellom BNP og CO2 for de fem største økonomiene i verden, målt ved kjøpekraftjustert BNP. Disse landene er:
+
+```{r}
+list <- c("China", "United States", "India", "Japan", "Germany")
+```
+
+Betrakt følgende figur:
+
+```{r}
+df %>%
+  
+  mutate(gdp = gdp/10^12) %>%
+
+  mutate(co2 = co2/10^3) %>%
+
+  filter(country %in% list) %>% 
+  
+  ggplot(aes(x=gdp, y=co2, color = country)) %>%
+  
+  + geom_point() %>%
+  
+  + geom_smooth(se = FALSE) %>%
+  
+  + labs(y = "CO2", x = "GDP", title = "GDP vs CO2", subtitle = "Production-based C02 emissions, billions of tons. 
+GDP in trillions of USD, constant 2011 prices at purchasing power parity. 1850-2020.", color = "Country") %>%
+  
+  + theme_bw()
+```
+
+Kommandoen `geom_smooth()` bruker en såkalt lokal regresjon til å tegne en kurve gjennom datapunktene. Dere kan tenke på dette som en gjennomsnittlig sammenheng, eller at man har tegnet en strek gjennom datapunktene med en penn.
+
+### Oppgave Ia
+
+Gi en fullstendig og nøyaktig beskrivelse av figuren. Tolk helningen på linjene og diskuter variasjon mellom og innad i landene. Drøft hvilke forhold figuren illustrerer på en god måte og hvilken informasjon som er vanskelig å tolke.
+
+*\[Svar på oppgave Ia her.\]*
+
+Figuren beskriver utslipp av co2 i millarder tonn langs y aksen og bnp i billoner av dollar i 2011 priser langs x aksen.Grafen er målt fra 1850-2020. Vi ser likhene mellom Japan og Tyskland i utvikling, Japan ligger litt over Tyskland. Kina har en eksplosiv vekst og går forbi USA. Kina har det høyeste utslippet med god margin, etterfulgt av USA som også har høyt utslipp. Vi ser at Kina og USA er de største økonomiene, med god margin. Det er vanskelig å tolke forskjeller der hvor linjene starter. Vi ser heller ikke hva som forårsaker høyt utslipp, man kan nesten anta at høyere utslipp utgjør høyere BNP.
+
+\### Oppgave Ib
+
+Vi betrakter nå et normalisert mål på sammenhengen CO2-utslipp og inntekt. La $CO2_{t}$ og $BNP_{t}$ være henholdsvis årlige utslipp av CO2 og brutto nasjonalprodukt i år $t$. Vi måler $CO2_{t}$ i kilogram og $BNP_{t}$ i kjøpekraftjusterte USD ved faste 2011-priser. Vi kan definere karbonintensiteten i produksjon som $CI_{t}=CO{2}_{t}/BNP_{t}$, altså antall kilogram CO2 per USD i verdiskapning.
+
+Lag en figur som viser karbonintensiteten $CI_{t}$ til de fem største økonomiene (navnene er lagret i variabelen `list` over) fra 1850 til 2020. Sammenlign $CI_{t}$ med helningen fra figuren i oppgave Ia. Gi en fullstendig og nøyaktig beskrivelse av figuren. Drøft minst to forhold som du tror kan være av avgjørende betydningen for å forklare variasjonen innad og mellom land.
+
+```{r}
+# Løs oppgave Ib her
+as_tibble(df)
+df %>%
+   mutate(gdp = gdp/10^12) %>%
+  mutate(co2 = co2/10^3) %>%
+  mutate(co2_gdp = co2/gdp) %>%
+  filter(country %in% list) %>% 
+  ggplot(aes(x = year, y = co2_gdp, color = country)) %>% +
+  geom_point() %>% +
+  geom_smooth(se = FALSE) %>% + 
+  labs(x = "year", y = "carbonintensity", title = "carbonintensity from year 1850-2020,", ) +
+  theme_bw()
+
+```
+
+*\[Besvar oppgave 1b her\]*
+
+Figuren er vist med karbonintensitet langs y aksen og år fra 1850-2020 langs x aksen. Figuren viser at karbonintensiteten er ganske lik mellom landene, med unntak av Kina som har høyere karbonintensitet enn de andre nasjonene. Hvis vi sammenligner med figuren fra oppgave a, kan vi observere veksten i Kina. Både den økonomiske veksten og økningen av utslipp. Vi kan se at verdiskapning per co2 kg utslipp er høyere i Kina sammenlignet med resten av verden. Likevel observerer vi på den første fiugren at USA har en økonomi på lignede størrelse, men utslippet er betraktelig mindre. Det kan forklares ved at økonomiene er svært forskjellige. Kina produserer svært mye varer som krever tung industri. USAs økonomi er mer basert på tjenester fremfor industri. Vi kan også se at Tyskland og USA lå langt foran de andre nasjonene i karbonintensitet. Årsakene kan være mange, men Tyskland og USA var blant nasjonene som industrialiserte tidligst, noe som kan forklare den høye verdiskapningen per co2 kg utslipp på starten av 1900 tallet.
+
+### Oppgave Ic
+
+Undersøk hvorvidt bruken av kull som energikilde kan forklare forskjellen i karbonintensitet mellom de fem største landene. Lag to figurer og 100-200 ord med tekst. Husk å gi en fullstendig og nøyaktig beskrivelse av figurene.
+
+**Figur 1**
+
+```{r}
+# besvar oppgave 1c her
+df %>%
+  mutate(gdp = gdp/10^12) %>%
+  mutate(co2 = co2/10^3) %>%
+  mutate(co2_gdp = co2/gdp) %>%
+ mutate(co2_coal = coal_co2/co2) %>%
+   filter(country %in% list) %>%
+  ggplot(aes(x = co2 , y = coal_co2, color = country)) +
+  geom_point() +
+  geom_smooth(se = FALSE) %>%
+  labs(x = "co2", y = "coal usage", title = "Coal usage in the 5 largest economies") + 
+  theme_bw()
+
+df %>%
+  mutate(gdp = gdp/10^12) %>%
+  mutate(co2 = co2/10^3) %>%
+  mutate(co2_gdp = co2/gdp) %>%
+ mutate(co2_coal = coal_co2/co2) %>%
+   filter(country %in% list) %>%
+  ggplot(aes(x = year, y = co2_coal, color = country)) +
+  geom_point() +
+  geom_smooth(se = FALSE) %>%
+  labs(x = "Year", y = "Coal usage of total co2 output", color = "Country", title = "Coal usage of total Co2 output in the 5 largest economies" ) +
+  theme_bw()
+  
+
+  
+```
+
+*\[Besvar oppgave Ic her\]*
+
+Figur nr 1 viser bruk av kull langs y aksen og co2 langs x aksen, 1850-2020. Figur nr 2 viser hvor stor andel av co2 utslipp kull utgjør langs y aksen og år langs x aksen. På figur nr 2 observerer vi at kull står for en stor del av utslippet i India og Kina sammenlignet med de andre nasjonene. På figur 1 kan vi derimot se at USA også har høyt utslipp, men bruken av kull er langt mindre. Det forteller at kull forklarer en stor del av Kina høye karbonintensitet, men forklarer ikke alt. På figur nr 2 ser vi også at USA forbruker svært lite kull i forhold til de andre nasjonene. Likevel har de høyt co2 utslipp.
+
+## II. Konsumbaserte CO2-utslipp
+
+I den foregående analysen har vi slått fast at Kina har høy karbonintensitet i produksjon og at kullforbrenning står for en høy andel av deres utslipp. I hvilken grad kan utslippene knyttes til eksportrettet produksjon? I dataene fra OWID har de variable som de kaller konsumbaserte utslipp, for eksempel variabelen `consumption_co2.`
+
+### Oppgave IIa
+
+Forklar hvordan konsumbaserte CO2-utslipp er konstruert og hvordan vi skal tolke den.
+
+Konsumbaserte Co2-utslipp forteller hvor mye co2 utslipp en nasjon trenger for å tilfredstille nasjonens behov for varer og tjenester. Hvis vi ser på konsumbasert co2-utslipp per inbygger kan det fortelle oss hvor mye co2 hver innbygger forbruker i en nasjon.
+
+*\[Besvar oppgave IIa her.\]*
+
+### Oppgave IIb
+
+Lag en figur som viser utviklingen av konsumbasert CO2 per person og totale, konsumbaserte utslipp. Gi en fullstendig og nøyaktig beskrivelse av figuren og forklar hva den viser.
+
+**Hint:** Hvis du bruker `geom_point()` så kan spesifisere én av variablene ved tilvalget `size` i `aes()`.
+
+```{r}
+# besvar oppgave IIb her
+df %>%
+  filter(country %in% list) %>%
+  ggplot(aes(year, consumption_co2, color = country)) +
+  geom_point(aes(size = consumption_co2_per_capita)) +
+  theme_bw() +
+  labs(title = "co2 consumption and co2 consumption per capita, in the 5 largest economies", x ="Year", y = "Co2 consumption")
+  
+  
+  
+  
+```
+
+*\[Besvar oppgave IIb her.\]* Figuren viser co2-konsum langs y aksen og år langs x aksen. Tykkelsen på punktene forteller hvor mye co2 hver innbygger konsumerer. Vi kan se på figuren at Kina konsumerer mest, men hver enkelt person konsumerer mye mindre enn for eksempel USA. Det kan også forklares med at Kina har en mye større befolkning enn USA. India har minst konsum for hver inbygger, men har totalt sett høyere konsum enn Japan og Tyskland.
+
+## III. Produksjon- og konsumbaserte utslipp
+
+Betrakt følgende figur, og gi en konkret forklaring på hva den viser.
+
+```{r}
+df %>%
+
+  filter(country %in% c(list)) %>% 
+
+  ggplot(aes(x=year, y=trade_co2_share, color = country)) %>%
+  
+  + xlim(1990,2020) %>%
+  
+  + geom_line(size = 1.5) %>%
+  
+  + geom_hline(yintercept=0) %>%
+  
+  + labs(x = "Year", y = "Traded CO2 share", title = "Traded CO2 as share of production-based emissions", subtitle = "CO2 embedded in trade. Share of production based emissions. Percent. 1950-2020.
+Positive (negative) value indicates net imports (export) of CO2 emissions.", color = "Country") %>%
+  
+  + theme_bw()
+```
+
+*\[Besvar oppgave III her\]* Figuren viser Traded co2 share langs y aksen og år 1990-2020 langs x aksen. Figuren viser hvor mye en nasjon importer og eksporterer av produksjonsbasert co2 utslipp. Kina og India eskporterer mer produksjonsbasert co2 utslipp enn de selv forbruker. Tyskland, USA og Japan importerer mer produsjonsbasert co2 utslipp enn de selv forbruker.
